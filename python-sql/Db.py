@@ -1,62 +1,61 @@
 import sqlite3
-class db :
-    def __init__(self, db_file):
-        self.db_file = db_file
+
+class Database:
+    def __init__(self, db_path):
+        """Initialise la connexion à la base de données SQLite."""
+        self.db_path = db_path
+        self.conn = None
+        self.cursor = None
 
     def connect(self):
-        """Établit une connexion à la base de données SQLite."""
+        """Établit la connexion à la base de données."""
+        self.conn = sqlite3.connect(self.db_path)
+        self.cursor = self.conn.cursor()
+
+    def execute_query(self, query, params=None):
+        """Exécute une requête (SELECT, INSERT, UPDATE, etc.)."""
+        if self.conn is None:
+            self.connect()
         try:
-            self.conn = sqlite3.connect(self.db_file)
-            print(f"Connexion à la base de données '{self.db_file}' établie.")
-            return self.conn
+            if params:
+                self.cursor.execute(query, params)
+            else:
+                self.cursor.execute(query)
+            self.conn.commit()
+            return self.cursor.fetchall()
         except sqlite3.Error as e:
-            print(f"Une erreur SQLite est survenue : {e}")
+            print(f"Erreur SQLite : {e}")
             return None
-        
+
     def close(self):
-        """Ferme la connexion à la base de données SQLite."""
+        """Ferme la connexion proprement."""
+        if self.cursor:
+            self.cursor.close()
         if self.conn:
             self.conn.close()
-            print(f"Connexion à la base de données '{self.db_file}' fermée.")
-        else:
-            print("Aucune connexion à fermer.")
+            self.conn = None
+            self.cursor = None
             
-        
-    def fetch_all(self, query, params=None):
-        """Récupère tous les résultats d'une requette."""
-        conn = self.connect()
-        if not conn:
-            print("Échec de la connexion à la base de données.")
-            return None
-        try:
-            cursor = self.conn.cursor()
-            if params:
-                cursor.execute(query, params)
-            else:
-                cursor.execute(query)
-            self.conn.commit()
-            print("Requête exécutée avec succès.")
-            results = cursor.fetchall()
-            for row in results:
-                print(row)
-            return results
-        except sqlite3.Error as e:
-            print(f"Une erreur SQLite est survenue lors de la récupération des résultats : {e}")
-            return None      
-    def fetch_one(self, cursor):
-        """Récupère un seul résultat d'un curseur."""
-        if cursor:
-            try:
-                result = cursor.fetchone()
-                if result:
-                    print("Un enregistrement récupéré.")
-                else:
-                    print("Aucun enregistrement trouvé.")
-                return result
-            except sqlite3.Error as e:
-                print(f"Une erreur SQLite est survenue lors de la récupération du résultat : {e}")
-                return None
-        else:
-            print("Aucun curseur fourni pour récupérer le résultat.")
-            return None
-    
+# # Création de l'objet gestionnaire
+# db = db("ma_base.db")
+
+# # Créer une table
+# db.execute_query("""
+#     CREATE TABLE IF NOT EXISTS utilisateurs (
+#         id INTEGER PRIMARY KEY AUTOINCREMENT,
+#         nom TEXT,
+#         age INTEGER
+#     )
+# """)
+
+# # Insérer des données
+# db.execute_query("INSERT INTO utilisateurs (nom, age) VALUES (?, ?)", ("Alice", 30))
+# db.execute_query("INSERT INTO utilisateurs (nom, age) VALUES (?, ?)", ("Bob", 25))
+
+# # Lire des données
+# resultats = db.execute_query("SELECT * FROM utilisateurs")
+# for ligne in resultats:
+#     print(ligne)
+
+# # Fermer la connexion
+# db.close()
