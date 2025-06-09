@@ -21,10 +21,12 @@ class db :
         else:
             print("Aucune connexion à fermer.")
             
-    def execute_query(self, query, params=None):
-        """Exécute une requête SQL sur la base de données."""
-        if not self.conn:
-            print("Aucune connexion à la base de données. Veuillez d'abord appeler connect().")
+        
+    def fetch_all(self, query, params=None):
+        """Récupère tous les résultats d'une requette."""
+        conn = self.connect()
+        if not conn:
+            print("Échec de la connexion à la base de données.")
             return None
         try:
             cursor = self.conn.cursor()
@@ -34,25 +36,13 @@ class db :
                 cursor.execute(query)
             self.conn.commit()
             print("Requête exécutée avec succès.")
-            return cursor
+            results = cursor.fetchall()
+            for row in results:
+                print(row)
+            return results
         except sqlite3.Error as e:
-            print(f"Une erreur SQLite est survenue lors de l'exécution de la requête : {e}")
-            return None
-        
-    def fetch_all(self, cursor):
-        """Récupère tous les résultats d'un curseur."""
-        if cursor:
-            try:
-                results = cursor.fetchall()
-                print(f"{len(results)} enregistrements récupérés.")
-                return results
-            except sqlite3.Error as e:
-                print(f"Une erreur SQLite est survenue lors de la récupération des résultats : {e}")
-                return None
-        else:
-            print("Aucun curseur fourni pour récupérer les résultats.")
-            return None
-        
+            print(f"Une erreur SQLite est survenue lors de la récupération des résultats : {e}")
+            return None      
     def fetch_one(self, cursor):
         """Récupère un seul résultat d'un curseur."""
         if cursor:
