@@ -1,0 +1,150 @@
+import sqlite3
+
+# Nom du fichier de la base de données
+db_file = 'ma_base_de_donnees.db'
+
+try:
+    # 1. Se connecter à la base de données
+    conn = sqlite3.connect(db_file)
+    print(f"Connecté à la base de données : {db_file}")
+
+    # 2. Créer un curseur
+    cursor = conn.cursor()
+
+    # 3. Exécuter des requêtes SQL
+
+    # Créer une table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS produits (
+            id INTEGER PRIMARY KEY,
+            nom TEXT NOT NULL,
+            prix REAL,
+            stock INTEGER
+        )
+    ''')
+    print("Table 'produits' créée (si elle n'existait pas).")
+
+    # Insérer des données
+    cursor.execute("INSERT INTO produits (nom, prix, stock) VALUES (?, ?, ?)", ("Livre Python", 25.99, 100))
+    cursor.execute("INSERT INTO produits (nom, prix, stock) VALUES (?, ?, ?)", ("Clavier Mécanique", 89.99, 50))
+    print("Données insérées.")
+
+    # Mettre à jour des données
+    cursor.execute("UPDATE produits SET stock = ? WHERE nom = ?", (120, "Livre Python"))
+    print("Stock du Livre Python mis à jour.")
+
+    # Sélectionner des données
+    print("\nProduits dans la base de données :")
+    cursor.execute("SELECT * FROM produits")
+    rows = cursor.fetchall()
+
+    for row in rows:
+        print(f"ID: {row[0]}, Nom: {row[1]}, Prix: {row[2]}, Stock: {row[3]}")
+
+    # 4. Valider les changements
+    conn.commit()
+    print("\nChangements validés.")
+
+except sqlite3.Error as e:
+    print(f"Erreur SQLite : {e}")
+
+finally:
+    # 5. Fermer la connexion
+    if conn:
+        conn.close()
+        print("Connexion à la base de données fermée.")
+
+import sqlite3
+
+# 1. Nom du fichier de base de données
+db_file = 'ma_base_de_donnees.db'
+
+try:
+    # 2. Établir la connexion
+    conn = sqlite3.connect(db_file)
+    print(f"Connexion à la base de données '{db_file}' établie avec succès.")
+
+    # 3. Créer un objet curseur
+    cursor = conn.cursor()
+
+    # 4. Exécuter des requêtes SQL
+    # Créer une table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS produits (
+            id INTEGER PRIMARY KEY,
+            nom TEXT NOT NULL,
+            prix REAL,
+            stock INTEGER
+        )
+    ''')
+    print("Table 'produits' vérifiée/créée.")
+
+    # Insérer des données
+    cursor.execute("INSERT INTO produits (nom, prix, stock) VALUES (?, ?, ?)", ('Ordinateur portable', 1200.00, 50))
+    cursor.execute("INSERT INTO produits (nom, prix, stock) VALUES (?, ?, ?)", ('Souris', 25.50, 200))
+    print("Données insérées.")
+
+    # Valider les changements
+    conn.commit()
+    print("Modifications validées.")
+
+    # Sélectionner des données
+    cursor.execute("SELECT * FROM produits WHERE prix > ?", (100,))
+    produits_chers = cursor.fetchall()
+    print("\nProduits dont le prix est supérieur à 100 :")
+    for produit in produits_chers:
+        print(produit)
+
+    cursor.execute("SELECT * FROM produits")
+    tous_les_produits = cursor.fetchall()
+    print("\nTous les produits :")
+    for produit in tous_les_produits:
+        print(produit)
+
+except sqlite3.Error as e:
+    print(f"Une erreur SQLite est survenue : {e}")
+finally:
+    # 6. Fermer la connexion
+    if conn:
+        conn.close()
+        print(f"Connexion à la base de données '{db_file}' fermée.")
+
+
+
+//***************Utilisation d'un gestionnaire de contexte (with statement)
+C'est une méthode fortement recommandée pour gérer les connexions SQLite car elle garantit que la connexion 
+est correctement fermée (et les transactions validées ou annulées) même si des erreurs surviennent. 
+Python s'occupe automatiquement de commit() (si la transaction est réussie) ou rollback() 
+(si une exception se produit) et de close() de la connexion.
+
+
+import sqlite3
+
+db_file = 'ma_base_de_donnees_ctx.db'
+
+try:
+    # Utilisation du gestionnaire de contexte pour la connexion
+    with sqlite3.connect(db_file) as conn:
+        cursor = conn.cursor()
+
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS parametres (
+                cle TEXT PRIMARY KEY,
+                valeur TEXT
+            )
+        ''')
+        print("Table 'parametres' vérifiée/créée.")
+
+        cursor.execute("INSERT INTO parametres (cle, valeur) VALUES (?, ?)", ('version_app', '1.0'))
+        print("Paramètre inséré.")
+
+        # Pas besoin d'appeler conn.commit() explicitement ici, le 'with' s'en charge
+        # si aucune exception n'est levée.
+
+        cursor.execute("SELECT * FROM parametres")
+        print("Paramètres actuels :", cursor.fetchall())
+
+except sqlite3.Error as e:
+    print(f"Une erreur SQLite est survenue : {e}")
+# La connexion est automatiquement fermée à la sortie du bloc 'with'
+print(f"Connexion à la base de données '{db_file}' fermée via le gestionnaire de contexte.")
